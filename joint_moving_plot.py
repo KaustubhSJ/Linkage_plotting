@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import math
 from matplotlib.animation import FuncAnimation
 import time
-from matplotlib.widgets import Slider
+from matplotlib.widgets import Slider, Button
 
 #returns the x, y coordinates of each joint based on the input link lengths, in an array
 def calc_joint(link_lengths, theta):
@@ -303,35 +303,37 @@ theta_start = np.pi/4
 
 original_lengths = get_og_length()
 original_joint_pos = get_og_joint_pos()
-#print(f"First C = {original_joint_pos[2]}, First G = {original_joint_pos[6]}")
-#Change point g, -ve numbers make it go further from origin
+current_lengths = original_lengths
 
-new_joint_pos = change_F(original_joint_pos[:], -5)
-new_joint_pos_1 = change_G(new_joint_pos[:], -5)
-new_joint_pos_2 = change_C(new_joint_pos_1[:], 5, 5)
+# debugging code, not needed for now
+if False:
+    #print(f"First C = {original_joint_pos[2]}, First G = {original_joint_pos[6]}")
+    #Change point g, -ve numbers make it go further from origin
+    new_joint_pos = change_F(original_joint_pos[:], -5)
+    new_joint_pos_1 = change_G(new_joint_pos[:], -5)
+    new_joint_pos_2 = change_C(new_joint_pos_1[:], 5, 5)
 
-new_joint_pos_3 = change_D(original_joint_pos[:], -5)
-new_joint_pos_4 = change_E(new_joint_pos_3[:], -5)
-new_joint_pos_5 = change_B(new_joint_pos_4[:], -5, -15)
+    new_joint_pos_3 = change_D(original_joint_pos[:], -5)
+    new_joint_pos_4 = change_E(new_joint_pos_3[:], -5)
+    new_joint_pos_5 = change_B(new_joint_pos_4[:], -5, -15)
 
-new_joint_pos_6 = change_H(original_joint_pos[:], 0.3)
+    new_joint_pos_6 = change_H(original_joint_pos[:], 0.3)
 
-if new_joint_pos_6[0][0] == None:
-    print("Maths gone wrong")
+    if new_joint_pos_6[0][0] == None:
+        print("Maths gone wrong")
 
-print(f" \nOriginal: C = ({original_joint_pos[2][0]:.4f}, {original_joint_pos[2][1]:.4f}), F = ({original_joint_pos[5][0]:.4f} {original_joint_pos[5][1]:.4f}), G = ({original_joint_pos[6][0]:.4f} {original_joint_pos[6][1]:.4f})")
-print(f" Change F: C = ({new_joint_pos[2][0]:.4f}, {new_joint_pos[2][1]:.4f}), F = ({new_joint_pos[5][0]:.4f} {new_joint_pos[5][1]:.4f}), G = ({new_joint_pos[6][0]:.4f} {new_joint_pos[6][1]:.4f})")
-print(f" Cha F, G: C = ({new_joint_pos_1[2][0]:.4f}, {new_joint_pos_1[2][1]:.4f}), F = ({new_joint_pos_1[5][0]:.4f} {new_joint_pos_1[5][1]:.4f}), G = ({new_joint_pos_1[6][0]:.4f} {new_joint_pos_1[6][1]:.4f})")
-print(f" F, G, C:  C = ({new_joint_pos_2[2][0]:.4f}, {new_joint_pos_2[2][1]:.4f}), F = ({new_joint_pos_2[5][0]:.4f} {new_joint_pos_2[5][1]:.4f}), G = ({new_joint_pos_2[6][0]:.4f} {new_joint_pos_2[6][1]:.4f})")
+    print(f" \nOriginal: C = ({original_joint_pos[2][0]:.4f}, {original_joint_pos[2][1]:.4f}), F = ({original_joint_pos[5][0]:.4f} {original_joint_pos[5][1]:.4f}), G = ({original_joint_pos[6][0]:.4f} {original_joint_pos[6][1]:.4f})")
+    print(f" Change F: C = ({new_joint_pos[2][0]:.4f}, {new_joint_pos[2][1]:.4f}), F = ({new_joint_pos[5][0]:.4f} {new_joint_pos[5][1]:.4f}), G = ({new_joint_pos[6][0]:.4f} {new_joint_pos[6][1]:.4f})")
+    print(f" Cha F, G: C = ({new_joint_pos_1[2][0]:.4f}, {new_joint_pos_1[2][1]:.4f}), F = ({new_joint_pos_1[5][0]:.4f} {new_joint_pos_1[5][1]:.4f}), G = ({new_joint_pos_1[6][0]:.4f} {new_joint_pos_1[6][1]:.4f})")
+    print(f" F, G, C:  C = ({new_joint_pos_2[2][0]:.4f}, {new_joint_pos_2[2][1]:.4f}), F = ({new_joint_pos_2[5][0]:.4f} {new_joint_pos_2[5][1]:.4f}), G = ({new_joint_pos_2[6][0]:.4f} {new_joint_pos_2[6][1]:.4f})")
 
-print(f" \nOriginal: B = ({original_joint_pos[1][0]:.4f}, {original_joint_pos[1][1]:.4f}), D = ({original_joint_pos[3][0]:.4f} {original_joint_pos[3][1]:.4f}), E = ({original_joint_pos[4][0]:.4f} {original_joint_pos[4][1]:.4f})")
-print(f"Change D: B = ({new_joint_pos_3[1][0]:.4f}, {new_joint_pos_3[1][1]:.4f}), D = ({new_joint_pos_3[3][0]:.4f} {new_joint_pos_3[3][1]:.4f}), E = ({new_joint_pos_3[4][0]:.4f} {new_joint_pos_3[4][1]:.4f})")
-print(f"Cha D, E: B = ({new_joint_pos_4[1][0]:.4f}, {new_joint_pos_4[1][1]:.4f}), D = ({new_joint_pos_4[3][0]:.4f} {new_joint_pos_4[3][1]:.4f}), E = ({new_joint_pos_4[4][0]:.4f} {new_joint_pos_4[4][1]:.4f})")
-print(f"D, E, B: B = ({new_joint_pos_5[1][0]:.4f}, {new_joint_pos_5[1][1]:.4f}), D = ({new_joint_pos_5[3][0]:.4f} {new_joint_pos_5[3][1]:.4f}), E = ({new_joint_pos_5[4][0]:.4f} {new_joint_pos_5[4][1]:.4f})")
+    print(f" \nOriginal: B = ({original_joint_pos[1][0]:.4f}, {original_joint_pos[1][1]:.4f}), D = ({original_joint_pos[3][0]:.4f} {original_joint_pos[3][1]:.4f}), E = ({original_joint_pos[4][0]:.4f} {original_joint_pos[4][1]:.4f})")
+    print(f"Change D: B = ({new_joint_pos_3[1][0]:.4f}, {new_joint_pos_3[1][1]:.4f}), D = ({new_joint_pos_3[3][0]:.4f} {new_joint_pos_3[3][1]:.4f}), E = ({new_joint_pos_3[4][0]:.4f} {new_joint_pos_3[4][1]:.4f})")
+    print(f"Cha D, E: B = ({new_joint_pos_4[1][0]:.4f}, {new_joint_pos_4[1][1]:.4f}), D = ({new_joint_pos_4[3][0]:.4f} {new_joint_pos_4[3][1]:.4f}), E = ({new_joint_pos_4[4][0]:.4f} {new_joint_pos_4[4][1]:.4f})")
+    print(f"D, E, B: B = ({new_joint_pos_5[1][0]:.4f}, {new_joint_pos_5[1][1]:.4f}), D = ({new_joint_pos_5[3][0]:.4f} {new_joint_pos_5[3][1]:.4f}), E = ({new_joint_pos_5[4][0]:.4f} {new_joint_pos_5[4][1]:.4f})")
 
-print(f" \nOriginal: A = ({original_joint_pos[0][0]:.4f}, {original_joint_pos[0][1]:.4f}), H = ({original_joint_pos[7][0]:.4f} {original_joint_pos[7][1]:.4f})")
-print(f" \Change H: A = ({new_joint_pos_6[0][0]:.4f}, {new_joint_pos_6[0][1]:.4f}), H = ({new_joint_pos_6[7][0]:.4f} {new_joint_pos_6[7][1]:.4f})")
-
+    print(f" \nOriginal: A = ({original_joint_pos[0][0]:.4f}, {original_joint_pos[0][1]:.4f}), H = ({original_joint_pos[7][0]:.4f} {original_joint_pos[7][1]:.4f})")
+    print(f" \Change H: A = ({new_joint_pos_6[0][0]:.4f}, {new_joint_pos_6[0][1]:.4f}), H = ({new_joint_pos_6[7][0]:.4f} {new_joint_pos_6[7][1]:.4f})")
 
 joint_pairs = [(0, 7), (1, 4), (1, 3), (1, 2), (2, 5), (2, 6), (2, 7), (3, 4), (3, 5), (4, 7), (5, 6)]
 
@@ -345,3 +347,95 @@ ax1.set_aspect('equal')
 plt.xlabel('X axis (mm)')
 plt.ylabel('Y axis (mm)')
 plt.title('Jansens Linkage')
+
+#set up empty plots to be filled each frame
+scat = ax1.scatter([],[])
+lines = [ax1.plot([],[])[0] for _ in range(link_no)]#one plot per line
+gait = ax1.plot([],[], color='red')[0]
+
+#Slider axes
+ax_a = plt.axes([0.25, 0.05, 0.65, 0.03], facecolor='lightgoldenrodyellow')
+ax_l = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor='lightgoldenrodyellow')
+
+#make slider
+b_a = Button(ax_a, "Inc")
+#s_a = Slider(ax_a, 'Fixed a', 30, 70, valinit = original_lengths[0])
+s_l = Slider(ax_l, 'Fixed l', 5, 50, valinit = original_lengths[11])
+
+#def on_click_inc():
+#    change_G()
+#b_a.on_clicked(on_click_inc)
+
+ani = None
+store = 0
+mm = 0
+
+def update_fig(frame):
+    global ani
+    global mm
+    #calculate all positions of joints for all theta
+    for index, ii in enumerate(theta):
+        #at theta = ii, calculate joint positions [(x,y), (x1,y1),....)]
+        data[index] = calc_joint(current_lengths, ii)
+
+    # update joints
+    scat.set_offsets(data[frame])
+
+    # update links
+    for index, (ii, jj) in enumerate(joint_pairs):
+        line_x = [data[frame][ii][0], data[frame][jj][0]]
+        line_y = [data[frame][ii][1], data[frame][jj][1]]
+
+        length = math.sqrt((line_x[1] - line_x[0]) ** 2 + (line_y[1] - line_y[0]) ** 2)
+        #angle = (math.atan((line_y[1] - line_y[0])/(line_x[1] - line_x[0])))*360/(2*np.pi)
+        
+        lines[index].set_data(line_x, line_y)
+        lines[index].set_color('blue')
+    
+    # update overall path of foot
+    gait_x = np.zeros(np.size(theta))
+    gait_y = np.zeros(np.size(theta))
+    for index, _ in enumerate(theta):
+        gait_x[index] = data[index][joint_of_interest][0]
+        gait_y[index] = data[index][joint_of_interest][1]
+    gait.set_data(
+        gait_x,
+        gait_y
+    )
+
+    return scat, *lines, gait
+
+def pause_animation(duration):
+    ani.event_source.stop()
+    plt.pause(duration)
+    ani.event_source.start()
+
+theta = np.linspace(0,2*np.pi, 360)
+data = [[0]*joint_no for _ in range(len(theta))]
+
+# the index of the joint to plot the full path
+joint_of_interest = 6
+
+num_frames = len(theta)
+ani = FuncAnimation(fig1, update_fig, frames = num_frames, interval = 2, blit = True)
+#print(data[3][4][0])
+plt.figure(fig1.number)
+plt.show(block = False)
+
+# Global variable to track animation state
+anim_running = True
+
+# Function to pause/resume animation
+def onClick(event):
+    global anim_running
+    if anim_running:
+        ani.event_source.stop()
+        anim_running = False
+    else:
+        ani.event_source.start()
+        anim_running = True
+
+# Connect pause/resume function to mouse click event
+fig1.canvas.mpl_connect('button_press_event', onClick)
+
+plt.show()
