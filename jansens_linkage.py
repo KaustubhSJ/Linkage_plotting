@@ -69,17 +69,17 @@ matching_links = ([m, b, d, c, g, i, k, e, f, j, h])
 link_letter = ['m', 'b', 'd', 'c', 'g', 'i', 'k', 'e', 'f', 'j', 'h']
 
 data = [[0]*joint_no for _ in range(len(theta))]
-
+#print(data)
 #generate data for theta 0 -> 360
-for index, ii in enumerate(theta):
-    data[index], _, _ = calc_joint(a,b,c,d,e,f,g,h,i,j,k,l,m, ii)
+# for index, ii in enumerate(theta):
+#     data[index], _, _ = calc_joint(a,b,c,d,e,f,g,h,i,j,k,l,m, ii)
 
 #set up figure for animation 
 fig1, ax1 = plt.subplots()
 plt.subplots_adjust(left = 0.25, bottom = 0.25) #make space for sliders
 ax1.grid()
-ax1.set_xlim(-140, 50)
-ax1.set_ylim(-120, 40)
+ax1.set_xlim(-90, 20)
+ax1.set_ylim(-100, 40)
 ax1.set_aspect('equal')
 plt.xlabel('X axis (mm)')
 plt.ylabel('Y axis (mm)')
@@ -88,20 +88,29 @@ plt.title('Jansens Linkage')
 #set up empty plots to be filled each frame
 scat = ax1.scatter([],[])
 lines = [ax1.plot([],[])[0] for _ in range(link_no)]#one plot per line
+gait = ax1.plot([],[])
 
 #Slider axes
-axA = plt.axes([0.25, 0.05, 0.65, 0.03], facecolor='lightgoldenrodyellow')
-axL = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor='lightgoldenrodyellow')
+ax_a = plt.axes([0.25, 0.05, 0.65, 0.03], facecolor='lightgoldenrodyellow')
+ax_l = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor='lightgoldenrodyellow')
 
 #make slider
-sA = Slider(axA, 'Fixed a', 30, 40, valinit = a)
-sL = Slider(axL, 'Fixed l', 5, 15, valinit = l)
+s_a = Slider(ax_a, 'Fixed a', 30, 70, valinit = a)
+s_l = Slider(ax_l, 'Fixed l', 5, 50, valinit = l)
 
 ani = None
 store = 0
+mm = 0
 
 def update_fig(frame):
     global ani
+    global mm
+    #calculate all positions of joints for all theta
+    for index, ii in enumerate(theta):
+        #at theta = ii, calculate joint positions [(x,y), (x1,y1),....)]
+        data[index], _, _ = calc_joint(s_a.val,b,c,d,e,f,g,h,i,j,k,s_l.val,m, ii)
+
+    
 
     scat.set_offsets(data[frame])
     error = [None for _ in range(link_no)]
@@ -112,7 +121,7 @@ def update_fig(frame):
         line_y = [data[frame][ii][1], data[frame][jj][1]]
 
         length = math.sqrt((line_x[1] - line_x[0]) ** 2 + (line_y[1] - line_y[0]) ** 2)
-        angle = (math.atan((line_y[1] - line_y[0])/(line_x[1] - line_x[0])))*360/(2*np.pi)
+        #angle = (math.atan((line_y[1] - line_y[0])/(line_x[1] - line_x[0])))*360/(2*np.pi)
         
         error[index] = matching_links[index] - length
         if abs(error[index]) > 0.0000001:
@@ -123,28 +132,7 @@ def update_fig(frame):
         lines[index].set_data(line_x, line_y)
         lines[index].set_color(colour)
     
-    # if ani is not None:
-    #     if error[4] < 0.00001 and error[8] < 0.00001 and error[10] < 0.00001:
-    #         ani.event_source.stop()
-
-    #     if error[4] < 0.0000001:#g
-    #         #ani.event_source.stop()
-    #         lines[4].set_color('green')
-    #         #pause_animation(1)
-    #     else:
-    #         lines[4].set_color('red')
-            
-    #     if error[8] < 0.0000001: #f
-    #         #ani.event_source.stop()
-    #         lines[8].set_color('green')
-    #     else:
-    #         lines[8].set_color('red')
-
-    #     if error[10] < 0.0000001: #h
-    #         #ani.event_source.stop()
-    #         lines[10].set_color('green')
-    #     else:
-    #         lines[10].set_color('red')
+    
 
     return scat, *lines
 
