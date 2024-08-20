@@ -333,9 +333,11 @@ if False:
     print(f"D, E, B: B = ({new_joint_pos_5[1][0]:.4f}, {new_joint_pos_5[1][1]:.4f}), D = ({new_joint_pos_5[3][0]:.4f} {new_joint_pos_5[3][1]:.4f}), E = ({new_joint_pos_5[4][0]:.4f} {new_joint_pos_5[4][1]:.4f})")
 
     print(f" \nOriginal: A = ({original_joint_pos[0][0]:.4f}, {original_joint_pos[0][1]:.4f}), H = ({original_joint_pos[7][0]:.4f} {original_joint_pos[7][1]:.4f})")
-    print(f" \Change H: A = ({new_joint_pos_6[0][0]:.4f}, {new_joint_pos_6[0][1]:.4f}), H = ({new_joint_pos_6[7][0]:.4f} {new_joint_pos_6[7][1]:.4f})")
+    print(f" \nChange H: A = ({new_joint_pos_6[0][0]:.4f}, {new_joint_pos_6[0][1]:.4f}), H = ({new_joint_pos_6[7][0]:.4f} {new_joint_pos_6[7][1]:.4f})")
 
 joint_pairs = [(0, 7), (1, 4), (1, 3), (1, 2), (2, 5), (2, 6), (2, 7), (3, 4), (3, 5), (4, 7), (5, 6)]
+joint_update_funcs = [ None, change_B, change_C, change_D, change_E, change_F, change_G, change_H ]
+joint_free_direction = [ None, None, None, (1, 3), (1, 4), (2, 5), (2, 6), (0, 7) ]
 
 #joint pairs, m, b, d, c, g, i, k, e, f,  j, h
 fig1, ax1 = plt.subplots()
@@ -362,24 +364,44 @@ b_a = Button(ax_a, "Inc")
 #s_a = Slider(ax_a, 'Fixed a', 30, 70, valinit = original_lengths[0])
 s_l = Slider(ax_l, 'Fixed l', 5, 50, valinit = original_lengths[11])
 
-#def on_click_inc():
-#    change_G()
-#b_a.on_clicked(on_click_inc)
+def on_click_inc(evt):
+    global current_lengths
+
+    print(current_lengths)
+    new_pos = change_G(data[0], 5)
+    current_lengths, _ = calc_links(new_pos)
+    print(current_lengths)
+
+b_a.on_clicked(on_click_inc)
 
 ani = None
 store = 0
-mm = 0
 
-def update_fig(frame):
-    global ani
-    global mm
+def update_data(lengths):
+    global data
     #calculate all positions of joints for all theta
     for index, ii in enumerate(theta):
         #at theta = ii, calculate joint positions [(x,y), (x1,y1),....)]
-        data[index] = calc_joint(current_lengths, ii)
+        data[index] = calc_joint(lengths, ii)
+
+def update_fig(fake_frame):
+    global anim_running, data, current_frame, current_theta, highlighted_joint, joint_no
+
+    if anim_running:
+        current_frame += 1
+        if current_frame >= num_frames:
+            current_frame = 0
+
+    frame = current_frame
 
     # update joints
+    joint_colours = np.empty(joint_no, dtype=object)
+    joint_colours.fill('blue')
+    if highlighted_joint != -1:
+        joint_colours[highlighted_joint] = 'red'
+
     scat.set_offsets(data[frame])
+    scat.set_color(joint_colours)
 
     # update links
     for index, (ii, jj) in enumerate(joint_pairs):
@@ -412,9 +434,18 @@ def pause_animation(duration):
 
 theta = np.linspace(0,2*np.pi, 360)
 data = [[0]*joint_no for _ in range(len(theta))]
+update_data(original_lengths)
 
 # the index of the joint to plot the full path
 joint_of_interest = 6
+
+# Global variable to track animation state
+anim_running = True
+current_frame = 0
+current_theta = 0
+highlighted_joint = -1
+next_joint_positions = None
+mouse_is_down = False
 
 num_frames = len(theta)
 ani = FuncAnimation(fig1, update_fig, frames = num_frames, interval = 2, blit = True)
@@ -422,20 +453,55 @@ ani = FuncAnimation(fig1, update_fig, frames = num_frames, interval = 2, blit = 
 plt.figure(fig1.number)
 plt.show(block = False)
 
-# Global variable to track animation state
-anim_running = True
-
 # Function to pause/resume animation
-def onClick(event):
-    global anim_running
-    if anim_running:
-        ani.event_source.stop()
-        anim_running = False
+def onMouseDown(event):
+    global anim_running, mouse_is_down
+
+    mouse_is_down = True
+    anim_running = False
+
+def onMouseUp(event):
+    global anim_running, mouse_is_down, next_joint_positions, current_lengths
+
+    #if next_joint_positions != None:
+    #    current_lengths, _ = calc_links(next_joint_positions)
+
+    mouse_is_down = False
+    anim_running = True
+
+def onMouseMove(evt):
+    global highlighted_joint, data, current_frame, next_joint_positions
+
+    if evt.xdata != None:
+        if mouse_is_down:
+            free_joint = joint_free_direction[highlighted_joint]
+            if free_joint != None:
+                g_vec = np.array(data[current_frame][free_joint[0]]) - np.array(data[current_frame][free_joint[1]])
+                g_vec = g_vec / np.sqrt(np.sum(g_vec**2))
+
+                mouse_vec = np.array((evt.xdata, evt.ydata)) - np.array(data[current_frame][highlighted_joint])
+                dx = np.dot(mouse_vec, g_vec)
+
+                change_func = joint_update_funcs[highlighted_joint]
+                next_joint_positions = change_func(data[current_frame], dx)
+                if next_joint_positions != None:
+                    new_lengths, _ = calc_links(next_joint_positions)
+                    update_data(new_lengths)
+        else:
+            min_dist = math.inf
+            closest_joint_ix = -1
+            for ix in range(0, joint_no):
+                dist = hyp_find((evt.xdata, evt.ydata), data[current_frame][ix])
+                if dist < min_dist:
+                    min_dist = dist
+                    closest_joint_ix = ix
+            highlighted_joint = closest_joint_ix
     else:
-        ani.event_source.start()
-        anim_running = True
+        highlighted_joint = -1
 
 # Connect pause/resume function to mouse click event
-fig1.canvas.mpl_connect('button_press_event', onClick)
+fig1.canvas.mpl_connect('button_press_event', onMouseDown)
+fig1.canvas.mpl_connect('button_release_event', onMouseUp)
+fig1.canvas.mpl_connect('motion_notify_event', onMouseMove)
 
 plt.show()
