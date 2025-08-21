@@ -1,3 +1,13 @@
+"""
+filename: joint_moving_plot
+author: Dr. Kaustubh Jalundhwala
+Date: 2024/08/09
+description: File for plotting a moving jansens linkage and the corresponding stride pattern created. 
+The length of each linkage can be adjusted. Hover over the joint while in motion and it will highlight red.
+Click and drage the joint to adjust linkage length. If not image appears the linkage length is unsolvable.
+
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import math
